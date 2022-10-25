@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.emoji.dao.IEmojiDAO">
+
+    <select id="getEmojiList" resultType="com.jotte.emoji.vo.EmojiVO">
+        SELECT *
+        FROM "EMOJI"
+    </select>
+
+    <select id="getEmojiByUuid" resultType="com.jotte.emoji.vo.EmojiVO" parameterType="string">
+        SELECT *
+        FROM "EMOJI"
+        WHERE EMOJI_UUID = #{emojiUuid}
+    </select>
+
+    <insert id="insertEmoji" parameterType="com.jotte.emoji.vo.EmojiVO">
+        INSERT INTO "EMOJI"
+        (EMOJI_UUID,
+         EMOJI_NAME,
+         EMOJI_DESC,
+         USER_UUID,
+         EMOJI_DATA)
+        VALUES (#{emojiUuid},
+                #{emojiName},
+                #{emojiDesc},
+                #{userUuid},
+                #{emojiData})
+    </insert>
+
+    <delete id="deleteEmoji" parameterType="com.jotte.emoji.vo.EmojiVO">
+        DELETE
+        FROM EMOJI
+        WHERE USER_UUID = #{userUuid}
+    </delete>
+
+
+</mapper>

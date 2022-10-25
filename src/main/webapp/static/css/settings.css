@@ -1,0 +1,241 @@
+* {
+    color: var(--text-color);
+}
+
+.settings {
+    padding-top: 15px;
+    width: 100%;
+    height: auto;
+}
+
+.settings > .tabs {
+    width: 100%;
+    height: 45px;
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 5px;
+}
+
+.settings > .tabs > .tab {
+    color: var(--dimm-text-color);
+    width: auto;
+    height: 100%;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.settings > .tabs > .tab:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+.settings > .tabs > .tab.active {
+    border-bottom: 3px solid var(--text-color);
+    font-weight: 500;
+}
+
+.settings > .tabs > .tab > span {
+    display: inline-block;
+    color: var(--dimm-text-color);
+    margin: 0 10px;
+}
+
+.settings > .tabs > .tab.active > span {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.settings > .tab-contents {
+    width: 100%;
+    height: auto;
+}
+
+.settings > .tab-contents > .tab-content {
+    width: 100%;
+    height: auto;
+    display: none;
+}
+
+.settings > .tab-contents > .tab-content.active {
+    display: block;
+}
+
+.change-btn {
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 17px;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 4px 16px;
+    align-items: center;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: auto;
+}
+
+.change-btn.red {
+    border: 1px solid #ff3f3f;
+    color: #ff3f3f;
+}
+
+.account-setting {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 24px;
+    padding: 40px 0;
+}
+
+.account-preference {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 12px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 32px;
+    padding-bottom: 8px;
+}
+
+.setting {
+    display: flex;
+    flex-flow: row wrap;
+    margin-bottom: 32px;
+    width: 100%;
+}
+
+.setting-left {
+    display: flex;
+    flex-direction: column;
+    margin-right: 8px;
+    max-width: 80%;
+}
+
+.setting-top {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-right: 8px;
+}
+
+.setting-left > .title,
+.setting-top > .title {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.setting-left > .desc,
+.setting-top > .desc {
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--dimm-text-color);
+}
+
+.btn-area {
+    align-items: center;
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.change-btn-area {
+    float: right;
+    position: relative;
+}
+
+.about-area > .about-input {
+    margin-bottom: 0px;
+    resize: both;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 8px;
+}
+
+.settings input[type='text'] {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.user-img-selector-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 10px 0 30px 0;
+    width: 100%;
+    height: 200px;
+}
+
+.user-icon-wrap {
+    flex-shrink: 0;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+}
+
+.user-icon-wrap > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.user-background-wrap {
+    flex-grow: 1;
+    height: 100%;
+    background: lightgray;
+}
+
+.user-background-wrap > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.user-icon-wrap > img:hover,
+.user-background-wrap > img:hover {
+    filter: brightness(0.8);
+}
+
+.user-color-wrap > input[type='color'] {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+    border: none;
+    margin-top: 10px;
+}
+
+.user-color-wrap > input[type='color']::-webkit-color-swatch-wrapper,
+.user-color-wrap > input[type='color']::-webkit-color-swatch,
+.user-color-wrap > input[type='color']::-moz-color-swatch {
+    padding: 0;
+    border: 0;
+}
+
+@media (max-width: 623px) {
+    .settings > h2 {
+        margin: 0 15px;
+    }
+
+    .settings > .tab-contents {
+        padding: 0 15px;
+    }
+}

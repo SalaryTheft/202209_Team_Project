@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.post.dao.IPostDAO">
+    <resultMap id="postResultMap" type="com.jotte.post.vo.PostVO">
+        <id column="POST_UUID" property="postUuid"/>
+        <result column="POST_TITLE" property="postTitle"/>
+        <result column="POST_CONTENT" property="postContent"/>
+        <result column="POST_TAB" property="postTab"/>
+        <result column="POST_TIMESTAMP" property="postTimestamp"/>
+        <result column="POST_UPDATE_TIMESTAMP" property="postUpdateTimestamp"/>
+        <result column="USER_UUID" property="userUuid"/>
+        <result column="BOARD_ID" property="boardId"/>
+        <result column="POST_USER_LIKE_STATUS" property="postUserLikeStatus"/>
+        <result column="POST_LIKE_COUNT" property="postLikeCount"/>
+        <collection property="user" ofType="com.jotte.user.vo.UserVO"
+                    select="userCollection" column="USER_UUID"/>
+        <collection property="board" ofType="com.jotte.board.vo.BoardVO"
+                    select="boardCollection" column="BOARD_ID"/>
+        <collection property="postCommentCount" javaType="int"
+                    select="commentCountCollection" column="POST_UUID"/>
+    </resultMap>
+
+    <select id="userCollection" parameterType="String" resultType="com.jotte.user.vo.UserVO">
+        SELECT USER_NICKNAME
+        FROM "USER"
+        WHERE USER_UUID = #{userUuid}
+    </select>
+
+    <select id="boardCollection" parameterType="String" resultType="com.jotte.board.vo.BoardVO">
+        SELECT BOARD_ID,
+               BOARD_NAME,
+               BOARD_COLOR
+        FROM BOARD
+        WHERE BOARD_ID = #{boardId}
+    </select>
+
+    <select id="commentCountCollection" parameterType="String" resultType="int">
+        SELECT COUNT(COMMENT_UUID)
+        FROM BOARD_COMMENT
+        WHERE POST_UUID = #{postUuid}
+    </select>
+
+    <insert id="insertPost" parameterType="com.jotte.post.vo.PostVO">
+        INSERT INTO BOARD_POST (USER_UUID,
+                                BOARD_ID,
+                                POST_UUID,
+                                POST_TITLE,
+                                POST_CONTENT,
+                                POST_CONTENT_TEXT,
+                                POST_TAB,
+                                POST_TIMESTAMP)
+        VALUES (#{userUuid},
+                #{boardId},
+                #{postUuid},
+                #{postTitle},
+                #{postContent},
+                #{postContentText},
+                #{postTab},
+                SYSTIMESTAMP)
+    </insert>
+
+    <select id="getPostByUuid" parameterType="com.jotte.post.vo.PostVO" resultMap="postResultMap">
+        SELECT *
+        FROM BOARD_POST
+        WHERE POST_UUID = #{postUuid}
+    </select>
+
+    <select id="getPostList" parameterType="com.jotte.common.vo.SearchVO" resultMap="postResultMap">
+        SELECT * FROM (
+        SELECT a.*, ROWNUM as RNUM FROM (
+
+        SELECT p.*,
+        u.USER_NICKNAME
+        FROM BOARD_POST p,
+        "USER" u
+        WHERE p.USER_UUID = u.USER_UUID(+)
+        <if test="keyword != null and keyword != ''">
+            <if test="type == 'writer'">
+                AND LOWER(USER_NICKNAME) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+            <if test="type == 'title'">
+                AND LOWER(POST_TITLE) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+            <if test="type == 'content'">
+                AND LOWER(POST_CONTENT_TEXT) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+        </if>
+        <if test="board != null">
+            AND BOARD_ID = (SELECT BOARD_ID FROM BOARD WHERE BOARD_NAME = #{board})
+        </if>
+        <if test="range != null">
+            AND POST_TIMESTAMP <![CDATA[>=]]> ${range} -- SQL Injection 방지를 위해 Getter에 지정한 값만 반환하도록 함
+        </if>
+        ORDER BY POST_TIMESTAMP DESC
+
+        )a ) b WHERE RNUM BETWEEN #{firstRow} AND #{lastRow}
+    </select>
+
+    <select id="getPostCount" parameterType="com.jotte.common.vo.SearchVO" resultType="int">
+        SELECT COUNT(POST_UUID)
+        FROM BOARD_POST p, "USER" u
+        WHERE p.USER_UUID = u.USER_UUID(+)
+        <if test="keyword != null and keyword != ''">
+            <if test="type == 'writer'">
+                AND LOWER(USER_NICKNAME) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+            <if test="type == 'title'">
+                AND LOWER(POST_TITLE) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+            <if test="type == 'content'">
+                AND LOWER(POST_CONTENT_TEXT) LIKE '%'||LOWER(#{keyword})||'%'
+            </if>
+        </if>
+        <if test="board != null">
+            AND BOARD_ID = (SELECT BOARD_ID FROM BOARD WHERE BOARD_NAME = #{board})
+        </if>
+        <if test="range != null">
+            AND POST_TIMESTAMP <![CDATA[>=]]> ${range} -- SQL Injection 방지를 위해 Getter에 지정한 값만 반환하도록 함
+        </if>
+    </select>
+
+    <select id="getPostListAjax" resultMap="postResultMap">
+        SELECT * FROM (
+        SELECT ROWNUM, a.* FROM (
+
+        SELECT p.*,
+        NVL((
+        SELECT SUM(DECODE(LIKE_TYPE, 'LIKE', 1, -1))
+        FROM BOARD_LIKE
+        WHERE TARGET_UUID = p.POST_UUID
+        ),0) AS POST_LIKE_COUNT
+        <if test="user != null">
+            , (
+            SELECT LIKE_TYPE
+            FROM BOARD_LIKE
+            WHERE TARGET_UUID = p.POST_UUID
+            AND USER_UUID = #{user.userUuid}
+            ) AS POST_USER_LIKE_STATUS
+        </if>
+        FROM BOARD_POST p
+        WHERE 1=1
+        <if test="board != null">
+            AND p.BOARD_ID = #{board.boardId}
+        </if>
+        <if test="search.subBoardList != null and !search.subBoardList.isEmpty()">
+            AND p.BOARD_ID IN
+            <foreach collection="search.subBoardList" item="subBoardId" open="(" separator="," close=")">
+                #{subBoardId}
+            </foreach>
+        </if>
+        <if test="search.tab != null and search.tab != ''">
+            AND p.POST_TAB = #{search.tab}
+        </if>
+        <if test="search.uuid != null and search.uuid != ''">
+            AND p.POST_UUID = #{search.uuid}
+        </if>
+        <if test="search.timestamp != null and search.timestamp != ''">
+            <if test="search.order == 'asc'">
+                AND p.POST_TIMESTAMP <![CDATA[ >= ]]> TO_TIMESTAMP(#{search.timestamp}, 'YYYY-MM-DD HH24:MI:SS.FF6') +
+                INTERVAL '0.000001' SECOND
+            </if>
+            <if test="search.order == 'desc'">
+                AND p.POST_TIMESTAMP <![CDATA[ <= ]]> TO_TIMESTAMP(#{search.timestamp}, 'YYYY-MM-DD HH24:MI:SS.FF6') -
+                INTERVAL '0.000001' SECOND
+            </if>
+        </if>
+        <if test="search.order == 'asc'">
+            ORDER BY p.POST_TIMESTAMP
+        </if>
+        <if test="search.order == 'desc'">
+            ORDER BY p.POST_TIMESTAMP DESC
+        </if>
+
+        ) a ) b WHERE ROWNUM <![CDATA[ <= ]]> 5
+    </select>
+
+    <select id="getBestPostList" resultType="String">
+        SELECT POST_UUID
+        FROM (SELECT ROWNUM, a.POST_UUID
+              FROM (SELECT p.POST_UUID,
+                           NVL((SELECT SUM(DECODE(LIKE_TYPE, 'LIKE', 1, -1))
+                                FROM BOARD_LIKE
+                                WHERE TARGET_UUID = p.POST_UUID), 0
+                               ) AS POST_LIKE_COUNT
+                    FROM BOARD_POST p
+                    WHERE POST_TIMESTAMP >= SYSTIMESTAMP - INTERVAL '7' DAY
+                    ORDER BY POST_LIKE_COUNT DESC,
+                             POST_TIMESTAMP DESC) a) b
+        WHERE ROWNUM <![CDATA[ <= ]]> 300
+    </select>
+
+    <select id="getNewPostListAjax" resultMap="postResultMap">
+        SELECT * FROM (
+        SELECT ROWNUM, a.* FROM (
+
+        SELECT p.*,
+        NVL((
+        SELECT SUM(DECODE(LIKE_TYPE, 'LIKE', 1, -1))
+        FROM BOARD_LIKE
+        WHERE TARGET_UUID = p.POST_UUID
+        ),0) AS POST_LIKE_COUNT
+        <if test="user != null">
+            , (
+            SELECT LIKE_TYPE
+            FROM BOARD_LIKE
+            WHERE TARGET_UUID = p.POST_UUID
+            AND USER_UUID = #{user.userUuid}
+            ) AS POST_USER_LIKE_STATUS
+        </if>
+        FROM BOARD_POST p
+        WHERE 1=1
+        <if test="search.timestamp != null and search.timestamp != ''">
+            AND p.POST_TIMESTAMP <![CDATA[ <= ]]> TO_TIMESTAMP(#{search.timestamp}, 'YYYY-MM-DD HH24:MI:SS.FF6') -
+            INTERVAL '0.000001' SECOND
+        </if>
+        ORDER BY POST_TIMESTAMP DESC
+
+        ) a ) b WHERE ROWNUM <![CDATA[ <= ]]> 5
+    </select>
+
+    <select id="getPostByUuidAjax" resultMap="postResultMap">
+        SELECT p.*,
+        NVL((
+        SELECT SUM(DECODE(LIKE_TYPE, 'LIKE', 1, -1))
+        FROM BOARD_LIKE
+        WHERE TARGET_UUID = p.POST_UUID
+        ),0) AS POST_LIKE_COUNT
+        <if test="user != null">
+            , (
+            SELECT LIKE_TYPE
+            FROM BOARD_LIKE
+            WHERE TARGET_UUID = p.POST_UUID
+            AND USER_UUID = #{user.userUuid}
+            ) AS POST_USER_LIKE_STATUS
+        </if>
+        FROM BOARD_POST p
+        WHERE p.POST_UUID = #{postUuid}
+    </select>
+
+    <update id="updatePost" parameterType="com.jotte.post.vo.PostVO">
+        UPDATE BOARD_POST
+        SET POST_TITLE            = #{postTitle},
+            POST_CONTENT          = #{postContent},
+            POST_CONTENT_TEXT     = #{postContentText},
+            POST_TAB              = #{postTab},
+            POST_UPDATE_TIMESTAMP = SYSTIMESTAMP
+        WHERE BOARD_ID = #{boardId}
+          AND POST_UUID = #{postUuid}
+          AND USER_UUID = #{userUuid}
+    </update>
+
+    <delete id="deletePost" parameterType="com.jotte.post.vo.PostVO">
+        DELETE
+        FROM BOARD_POST
+        WHERE BOARD_ID = #{boardId}
+          AND POST_UUID = #{postUuid}
+          AND USER_UUID = #{userUuid}
+    </delete>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.like.dao.ILikeDAO">
+    <insert id="insertLike" parameterType="com.jotte.like.vo.LikeVO">
+        MERGE INTO BOARD_LIKE
+        USING DUAL
+        ON (USER_UUID = #{userUuid} AND TARGET_UUID = #{targetUuid})
+        WHEN MATCHED THEN
+            UPDATE
+            SET LIKE_TYPE = #{likeType}
+        WHEN NOT MATCHED THEN
+            INSERT (USER_UUID, TARGET_UUID, LIKE_TYPE)
+            VALUES (#{userUuid}, #{targetUuid}, #{likeType})
+    </insert>
+
+    <delete id="deleteLike" parameterType="com.jotte.like.vo.LikeVO">
+        DELETE FROM BOARD_LIKE
+        WHERE USER_UUID = #{userUuid} AND TARGET_UUID = #{targetUuid}
+    </delete>
+</mapper>

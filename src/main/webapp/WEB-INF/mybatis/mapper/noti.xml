@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.noti.dao.INotiDAO">
+    <resultMap id="notiResultMap" type="com.jotte.noti.vo.NotiVO">
+        <id column="NOTI_UUID" property="notiUuid"/>
+        <result column="USER_UUID" property="userUuid"/>
+        <result column="COMMENT_UUID" property="commentUuid"/>
+        <result column="COMMENT_TIMESTAMP" property="commentTimestamp"/>
+        <result column="COMMENT_USER_UUID" property="commentUserUuid"/>
+        <result column="COMMENT_CONTENT" property="commentContent"/>
+        <result column="POST_UUID" property="postUuid"/>
+        <result column="NOTI_TIMESTAMP" property="notiTimestamp"/>
+        <result column="NOTI_READ_YN" property="notiReadYn"/>
+        <collection property="commentUser" ofType="com.jotte.user.vo.UserVO"
+                    select="commentUserCollection" column="COMMENT_USER_UUID"/>
+        <collection property="commentPost" ofType="com.jotte.post.vo.PostVO"
+                    select="commentPostCollection" column="POST_UUID"/>
+    </resultMap>
+
+    <select id="commentUserCollection" parameterType="String" resultType="com.jotte.user.vo.UserVO">
+        SELECT USER_NICKNAME
+        FROM "USER"
+        WHERE USER_UUID = #{commentUserUuid}
+    </select>
+
+    <select id="commentPostCollection" parameterType="String" resultType="com.jotte.post.vo.PostVO">
+        SELECT POST_UUID,
+               POST_TITLE,
+               USER_UUID,
+               BOARD_ID
+        FROM BOARD_POST
+        WHERE POST_UUID = #{postUuid}
+    </select>
+
+    <select id="getNotiList" parameterType="String" resultMap="notiResultMap">
+        SELECT USER_UUID,
+               COMMENT_UUID,
+               TO_CHAR(COMMENT_TIMESTAMP - INTERVAL '0.000001' SECOND, 'YYYY-MM-DD HH24:MI:SS.FF6') AS COMMENT_TIMESTAMP,
+               COMMENT_USER_UUID,
+               COMMENT_CONTENT,
+               POST_UUID,
+               TO_CHAR(NOTI_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF6') AS NOTI_TIMESTAMP,
+               NOTI_UUID,
+               NOTI_READ_YN
+        FROM NOTIFICATION
+        WHERE USER_UUID = #{userUuid}
+        ORDER BY NOTI_READ_YN DESC,
+                 NOTI_TIMESTAMP DESC
+    </select>
+
+    <insert id="insertNoti" parameterType="com.jotte.noti.vo.NotiVO">
+        INSERT INTO NOTIFICATION
+        (USER_UUID,
+         COMMENT_UUID,
+         COMMENT_TIMESTAMP,
+         COMMENT_USER_UUID,
+         COMMENT_CONTENT,
+         POST_UUID,
+         NOTI_TIMESTAMP,
+         NOTI_UUID)
+        VALUES (#{userUuid},
+                #{commentUuid},
+                TO_TIMESTAMP(#{commentTimestamp}, 'YYYY-MM-DD HH24:MI:SS.FF6'),
+                #{commentUserUuid},
+                #{commentContent},
+                #{postUuid},
+                SYSTIMESTAMP,
+                #{notiUuid})
+    </insert>
+
+    <delete id="deleteNoti" parameterType="String">
+        DELETE
+        FROM NOTIFICATION
+        WHERE USER_UUID = #{userUuid}
+    </delete>
+
+    <update id="markAsRead">
+        UPDATE NOTIFICATION
+        SET NOTI_READ_YN = 'Y'
+        WHERE USER_UUID = #{userUuid}
+        <if test="notiUuid != null">
+            AND NOTI_UUID = #{notiUuid}
+        </if>
+    </update>
+</mapper>

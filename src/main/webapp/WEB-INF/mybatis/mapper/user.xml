@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.user.dao.IUserDAO">
+    <select id="getUserByUuid" parameterType="String" resultType="com.jotte.user.vo.UserVO">
+        SELECT *
+        FROM "USER"
+        WHERE USER_UUID = #{userUuid}
+    </select>
+
+    <select id="getUserByEmail" parameterType="String" resultType="com.jotte.user.vo.UserVO">
+        SELECT *
+        FROM "USER"
+        WHERE LOWER(USER_EMAIL) = LOWER(#{userEmail})
+          AND USER_DEL_YN = 'N'
+    </select>
+
+    <select id="getUserByNickname" resultType="com.jotte.user.vo.UserVO">
+        SELECT "USER".*,
+               (SELECT COUNT(POST_UUID) FROM BOARD_POST WHERE USER_UUID = "USER".USER_UUID)       AS USER_POST_COUNT,
+               (SELECT COUNT(COMMENT_UUID) FROM BOARD_COMMENT WHERE USER_UUID = "USER".USER_UUID) AS USER_COMMENT_COUNT
+        FROM "USER"
+        WHERE LOWER(USER_NICKNAME) = LOWER(#{userNickname})
+          AND USER_DEL_YN = 'N'
+    </select>
+
+    <select id="getUserList" parameterType="com.jotte.common.vo.SearchVO" resultType="com.jotte.user.vo.UserVO">
+        SELECT * FROM ( SELECT a.*, ROWNUM as RNUM FROM (
+
+        SELECT USER_NICKNAME
+        FROM "USER"
+        WHERE USER_DEL_YN = 'N'
+          AND LOWER(USER_NICKNAME) LIKE '%' || LOWER(#{keyword}) || '%'
+        ORDER BY USER_NICKNAME
+
+        )a ) b WHERE RNUM BETWEEN #{firstRow} AND #{lastRow}
+    </select>
+
+    <select id="getUserCount" parameterType="com.jotte.common.vo.SearchVO" resultType="int">
+        SELECT COUNT(USER_UUID)
+        FROM "USER"
+        WHERE USER_DEL_YN = 'N'
+          AND LOWER(USER_NICKNAME) LIKE '%' || LOWER(#{keyword}) || '%'
+    </select>
+
+    <insert id="insertUser" parameterType="com.jotte.user.vo.UserVO">
+        INSERT INTO "USER"
+        (USER_PW,
+         USER_UUID,
+         USER_EMAIL,
+         USER_NICKNAME,
+         USER_REG_DATE,
+         USER_DEL_YN,
+         USER_ROLE)
+        SELECT #{userPw},
+               #{userUuid},
+               #{userEmail},
+               #{userNickname},
+               SYSDATE,
+               'N',
+               'MEMBER'
+        FROM DUAL
+        WHERE NOT EXISTS(SELECT 1 FROM "USER" WHERE LOWER(USER_NICKNAME) = LOWER(#{userNickname}))
+          AND NOT EXISTS(SELECT 1 FROM "USER" WHERE USER_EMAIL = #{userEmail})
+    </insert>
+
+    <update id="updateUser" parameterType="com.jotte.user.vo.UserVO">
+        UPDATE
+            "USER"
+        SET USER_PW=#{userPw},
+            USER_EMAIL=#{userEmail},
+            USER_NICKNAME=#{userNickname},
+            USER_DEL_YN=#{userDelYn},
+            USER_ROLE=#{userRole},
+            USER_COLOR=#{userColor},
+            USER_DESC=#{userDesc},
+            USER_ICON=#{userIcon},
+            USER_BACKGROUND=#{userBackground}
+        WHERE USER_UUID = #{userUuid}
+    </update>
+
+    <delete id="deleteUser" parameterType="com.jotte.user.vo.UserVO">
+        UPDATE
+            "USER"
+        SET USER_DEL_YN='Y',
+            USER_EMAIL = 'DELETED_' || USER_EMAIL,
+            USER_PW    = 'DELETED_' || USER_PW
+        WHERE USER_UUID = #{userUuid}
+    </delete>
+
+</mapper>

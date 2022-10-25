@@ -1,0 +1,305 @@
+body {
+    margin: 0;
+    background-color: white;
+    overflow: hidden;
+}
+
+.body {
+    width: 100%;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    padding: 3px 15px 10px 15px;
+    box-sizing: border-box;
+}
+
+.footer {
+    width: 100%;
+    height: 64px;
+    background-color: var(--border-color);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+h3:not(.title) {
+    margin: 10px 0 0 0;
+}
+
+p {
+    margin: 5px 0;
+    font-size: 15px;
+    color: var(--dimm-text-color);
+}
+
+input[type='text'] {
+    margin: 5px 0 10px 0;
+    width: 100%;
+    height: 35px;
+    background-color: var(--box-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+
+input[type='button'],
+input[type='submit'] {
+    width: auto;
+    height: 32px;
+    background-color: var(--highlight-color);
+    color: white;
+    padding: 0 15px;
+    border: none;
+    border-radius: 16px;
+    margin-left: 10px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+input.cancel {
+    background-color: white;
+    border: 2px solid var(--highlight-color);
+    color: var(--highlight-color);
+    cursor: pointer;
+}
+
+.dimm {
+    opacity: 0.8;
+}
+
+.color-picker-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.color-picker-wrap > input[type='color'] {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+    border: none;
+}
+
+.color-picker-wrap > input[type='color']::-webkit-color-swatch-wrapper,
+.color-picker-wrap > input[type='color']::-webkit-color-swatch,
+.color-picker-wrap > input[type='color']::-moz-color-swatch {
+    padding: 0;
+    border: 0;
+}
+
+.color-picker-wrap > span {
+    display: inline-block;
+}
+
+
+.board-icon,
+.board-background {
+    cursor: pointer;
+}
+
+#edit_tab {
+    font-weight: 500;
+    color: var(--highlight-color);
+}
+
+.tabs-edit,
+.tab-add {
+    width: 100%;
+}
+
+.tabs-edit > .tab,
+.tab-add > .tab-add-btn {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+/*.tabs-edit > .tab-add {*/
+/*    width: 100%;*/
+/*    height: 40px;*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*}*/
+
+.tabs-edit > .tab:not(:last-child) {
+    border-bottom: 2px dashed var(--border-color);
+}
+
+.tab-add > .tab-add-btn {
+    border-top: 2px dashed var(--border-color);
+}
+
+.tab-add > .tab-add-btn > span {
+    display: inline-block;
+    color: var(--highlight-color);
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.tabs-edit > .tab > .tab-name {
+    display: inline-block;
+    margin-right: auto;
+}
+
+.tabs-edit > .tab > span:not(.tab-name) {
+    display: inline-block;
+    color: var(--highlight-color);
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.mod-list > .mod-item {
+    display: flex;
+    padding: 10px 0;
+    width: 100%;
+    height: 45px;
+    align-items: center;
+}
+
+.mod-list > .mod-item:not(:first-of-type) {
+    border-top: 2px dashed var(--border-color);
+}
+
+.mod-list > .mod-item > .mod-profile {
+    display: flex;
+    align-items: center;
+}
+
+.mod-list > .mod-item > .mod-profile > .mod-name {
+    display: inline-block;
+    font-size: 18px;
+}
+
+.mod-list > .mod-item > .mod-profile > .mod-profile-img {
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background: gray url(../img/default_user_icon.jpg) no-repeat center;
+    background-size: cover;
+    overflow: hidden;
+}
+
+.mod-list > .mod-item > .mod-profile > .mod-profile-img > img {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mod-list > .mod-item > .mod-action {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.mod-list > .mod-item > .mod-action > .mod-role {
+    color: var(--dimm-text-color);
+}
+
+.mod-list > .mod-item > .mod-action > span:not(.mod-role) {
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 10px;
+    color: var(--highlight-color);
+}
+
+#editor {
+    height: 75%;
+}
+
+
+/* 미리보기용 CSS */
+.board-top {
+    width: 100%;
+    background-color: var(--box-bg-color);
+}
+
+.board-top > .board-background {
+    width: 100%;
+    height: 80px;
+    background-color: var(--highlight-color);
+    background-size: cover;
+    background-position: top;
+}
+
+.board-top > .board-info {
+    width: calc(100% - 30px);
+    max-width: 975px;
+    height: 80px;
+    margin: 0 auto;
+    /*background-color: lightcoral;*/
+    display: flex;
+}
+
+.board-top > .board-info > .board-icon {
+    width: 70px;
+    height: 70px;
+    background-color: gray;
+    border-radius: 100px;
+    position: relative;
+    bottom: 20px;
+    border: 5px solid white;
+    box-sizing: content-box;
+    margin-left: 10px;
+    background-size: cover;
+}
+
+.board-info > .board-detail {
+    margin-left: 10px;
+}
+
+.board-info > .board-detail > p {
+    color: var(--dimm-text-color);
+}
+
+.board-top > .board-tabs {
+    width: calc(100% - 30px);
+    max-width: 975px;
+    height: 30px;
+    margin: 0 auto;
+    display: flex;
+    /*background-color: bisque;*/
+}
+
+.board-top > .board-tabs > a {
+    display: inline-block;
+    padding: 2px 10px;
+    text-decoration: none;
+    color: var(--dimm-text-color);
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.board-top > .board-tabs > a.active {
+    color: var(--text-color);
+    border-bottom: 2px solid var(--highlight-color);
+    font-weight: 500;
+}
+
+.board-top > .board-tabs > a:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+.board-detail > h1 {
+    margin: 0;
+}
+
+/* 미리보기용 CSS 끝 */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: var(--bg-color);
+    }
+
+    input.cancel {
+        background-color: transparent;
+    }
+}

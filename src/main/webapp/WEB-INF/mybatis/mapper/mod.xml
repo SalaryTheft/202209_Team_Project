@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.board.dao.IModDAO">
+    <resultMap id="modResultMap" type="com.jotte.board.vo.ModVO">
+        <id column="USER_UUID" property="userUuid"/>
+        <result column="BOARD_ID" property="boardId"/>
+        <result column="MOD_ROLE" property="modRole"/>
+        <association property="user" javaType="com.jotte.user.vo.UserVO">
+            <id column="USER_NICKNAME" property="userNickname"/>
+            <result column="USER_UUID" property="userUuid"/>
+            <result column="USER_ICON" property="userIcon"/>
+        </association>
+    </resultMap>
+
+    <select id="getExistingMod" parameterType="com.jotte.board.vo.ModVO" resultType="com.jotte.board.vo.ModVO">
+        SELECT *
+        FROM BOARD_MOD
+        WHERE BOARD_ID = #{boardId}
+          AND USER_UUID = #{userUuid}
+          AND MOD_ROLE = #{modRole}
+    </select>
+
+    <insert id="insertBoardMod" parameterType="com.jotte.board.vo.ModVO">
+        INSERT INTO BOARD_MOD
+        VALUES (#{boardId}, #{userUuid}, #{modRole})
+    </insert>
+
+    <delete id="deleteBoardMod" parameterType="com.jotte.board.vo.ModVO">
+        DELETE
+        FROM BOARD_MOD
+        WHERE BOARD_ID = #{boardId}
+          AND USER_UUID = #{userUuid}
+    </delete>
+
+    <update id="updateBoardMod" parameterType="com.jotte.board.vo.ModVO">
+        UPDATE BOARD_MOD
+        SET MOD_ROLE = #{modRole}
+        WHERE BOARD_ID = #{boardId}
+          AND USER_UUID = #{userUuid}
+    </update>
+
+    <select id="getModList" parameterType="com.jotte.board.vo.BoardVO" resultMap="modResultMap">
+        SELECT b.*,
+               u.*
+        FROM BOARD_MOD b,
+             "USER" u
+        WHERE b.USER_UUID = u.USER_UUID
+          AND BOARD_ID = #{boardId}
+        ORDER BY MOD_ROLE
+    </select>
+</mapper>

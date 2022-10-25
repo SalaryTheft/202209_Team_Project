@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jotte.board.dao.IBoardDAO">
+    <select id="getBoardList" parameterType="com.jotte.common.vo.SearchVO" resultType="com.jotte.board.vo.BoardVO">
+        SELECT * FROM ( SELECT a.*, ROWNUM as RNUM FROM (
+
+        SELECT BOARD.BOARD_NAME,
+        BOARD.BOARD_ID,
+        BOARD.BOARD_DESC,
+        (SELECT COUNT(*) FROM BOARD_POST WHERE BOARD_ID = BOARD.BOARD_ID) AS BOARD_POST_COUNT,
+        (SELECT COUNT(*) FROM BOARD_SUBSCRIPTION WHERE BOARD_ID = BOARD.BOARD_ID) AS BOARD_SUB_COUNT,
+        CASE
+        WHEN BOARD_NAME BETWEEN '가' AND '나' THEN 'ㄱ'
+        WHEN BOARD_NAME BETWEEN '나' AND '다' THEN 'ㄴ'
+        WHEN BOARD_NAME BETWEEN '다' AND '라' THEN 'ㄷ'
+        WHEN BOARD_NAME BETWEEN '라' AND '마' THEN 'ㄹ'
+        WHEN BOARD_NAME BETWEEN '마' AND '바' THEN 'ㅁ'
+        WHEN BOARD_NAME BETWEEN '바' AND '사' THEN 'ㅂ'
+        WHEN BOARD_NAME BETWEEN '사' AND '아' THEN 'ㅅ'
+        WHEN BOARD_NAME BETWEEN '아' AND '자' THEN 'ㅇ'
+        WHEN BOARD_NAME BETWEEN '자' AND '차' THEN 'ㅈ'
+        WHEN BOARD_NAME BETWEEN '차' AND '카' THEN 'ㅊ'
+        WHEN BOARD_NAME BETWEEN '카' AND '타' THEN 'ㅋ'
+        WHEN BOARD_NAME BETWEEN '타' AND '파' THEN 'ㅌ'
+        WHEN BOARD_NAME BETWEEN '파' AND '하' THEN 'ㅍ'
+        WHEN BOARD_NAME BETWEEN '하' AND '힣' THEN 'ㅎ'
+        WHEN BOARD_NAME BETWEEN '0' AND '9' THEN '#'
+        ELSE UPPER(SUBSTR(BOARD_NAME, 1, 1))
+        END AS BOARD_NAME_INDEX
+        FROM "BOARD"
+        WHERE 1=1
+        <if test="search != null">
+            AND LOWER(BOARD_NAME) LIKE '%' || LOWER(#{search.keyword}) || '%' OR LOWER(BOARD_DESC) LIKE '%' || LOWER(#{search.keyword}) || '%'
+        </if>
+        ORDER BY BOARD_NAME_INDEX
+
+        )a ) b
+        <if test="search != null">
+            WHERE RNUM BETWEEN #{search.firstRow} AND #{search.lastRow}
+        </if>
+    </select>
+
+    <select id="getBoardCount" parameterType="com.jotte.common.vo.SearchVO" resultType="int">
+        SELECT COUNT(BOARD_NAME) FROM BOARD
+        WHERE 1=1
+        <if test="search != null">
+            AND LOWER(BOARD_NAME) LIKE '%' || LOWER(#{search.keyword}) || '%' OR LOWER(BOARD_DESC) LIKE '%' || LOWER(#{search.keyword}) || '%'
+        </if>
+    </select>
+
+    <select id="getBoardById" parameterType="String" resultType="com.jotte.board.vo.BoardVO">
+        SELECT BOARD.*,
+               (SELECT COUNT(*) FROM BOARD_POST WHERE BOARD_ID = #{boardId})         AS BOARD_POST_COUNT,
+               (SELECT COUNT(*) FROM BOARD_SUBSCRIPTION WHERE BOARD_ID = #{boardId}) AS BOARD_SUB_COUNT
+        FROM "BOARD"
+        WHERE BOARD_ID = #{boardId}
+    </select>
+
+    <select id="getBoardByName" parameterType="String" resultType="com.jotte.board.vo.BoardVO">
+        SELECT *
+        FROM "BOARD"
+        WHERE BOARD_NAME = #{boardName}
+    </select>
+
+    <insert id="insertBoard" parameterType="com.jotte.board.vo.BoardVO">
+        INSERT INTO "BOARD"
+        (BOARD_ID,
+         BOARD_NAME,
+         BOARD_DESC,
+         BOARD_REG_DATE,
+         BOARD_ICON,
+         BOARD_BACKGROUND,
+         BOARD_COLOR)
+        VALUES (#{boardId},
+                #{boardName},
+                #{boardDesc},
+                SYSDATE,
+                #{boardIcon},
+                #{boardBackground},
+                #{boardColor})
+    </insert>
+
+    <update id="updateBoard" parameterType="com.jotte.board.vo.BoardVO">
+        UPDATE
+            "BOARD"
+        SET BOARD_DESC       = #{boardDesc},
+            BOARD_ICON       = #{boardIcon},
+            BOARD_BACKGROUND = #{boardBackground},
+            BOARD_COLOR      = #{boardColor}
+        WHERE BOARD_ID = #{boardId}
+    </update>
+
+    <delete id="deleteBoard" parameterType="com.jotte.board.vo.BoardVO">
+        DELETE
+        FROM "BOARD"
+        WHERE BOARD_ID = #{boardId}
+    </delete>
+
+    <!-- 게시판 탭(카테고리) -->
+    <select id="getBoardTabs" parameterType="com.jotte.board.vo.BoardVO" resultType="String">
+        SELECT TAB_NAME
+        FROM "BOARD_TAB"
+        WHERE BOARD_ID = #{boardId}
+        ORDER BY TAB_ORDER, TAB_NAME
+    </select>
+
+    <insert id="insertBoardTab">
+        INSERT INTO "BOARD_TAB"
+        (BOARD_ID,
+         TAB_NAME,
+         TAB_ORDER)
+        VALUES (#{board.boardId},
+                #{tabName},
+                (SELECT NVL(MAX(TAB_ORDER), 0) + 1
+                 FROM "BOARD_TAB"
+                 WHERE BOARD_ID = #{board.boardId}))
+    </insert>
+
+    <delete id="deleteBoardTab">
+        DELETE
+        FROM "BOARD_TAB"
+        WHERE BOARD_ID = #{board.boardId}
+          AND TAB_NAME = #{tabName}
+    </delete>
+
+    <update id="updateBoardTab">
+        UPDATE
+            "BOARD_TAB"
+        SET TAB_NAME = #{newTabName}
+        WHERE BOARD_ID = #{board.boardId}
+          AND TAB_NAME = #{oldTabName}
+    </update>
+
+    <update id="movePostTab">
+        UPDATE
+            "BOARD_POST"
+        SET POST_TAB = #{newTabName}
+        WHERE BOARD_ID = #{board.boardId}
+          AND POST_TAB = #{oldTabName}
+    </update>
+
+    <update id="updateBoardTabOrder">
+        UPDATE
+            "BOARD_TAB"
+        SET TAB_ORDER = #{tabOrder}
+        WHERE BOARD_ID = #{board.boardId}
+          AND TAB_NAME = #{tabName}
+    </update>
+
+    <!-- 게시판 구독 -->
+    <insert id="insertBoardSubscription">
+        INSERT INTO BOARD_SUBSCRIPTION
+        (BOARD_ID,
+         USER_UUID)
+        VALUES (#{board.boardId},
+                #{user.userUuid})
+    </insert>
+
+    <delete id="deleteBoardSubscription">
+        DELETE
+        FROM BOARD_SUBSCRIPTION
+        WHERE BOARD_ID = #{board.boardId}
+          AND USER_UUID = #{user.userUuid}
+    </delete>
+
+    <select id="isBoardSubscribed" resultType="boolean">
+        SELECT DECODE(COUNT(*), 0, 0, 1)
+        FROM BOARD_SUBSCRIPTION
+        WHERE BOARD_ID = #{board.boardId}
+          AND USER_UUID = #{user.userUuid}
+    </select>
+
+    <select id="getSubBoardList" resultType="String">
+        SELECT BOARD_ID
+        FROM BOARD_SUBSCRIPTION
+        WHERE USER_UUID = #{user.userUuid}
+    </select>
+
+    <select id="getBestBoardList" parameterType="int" resultType="com.jotte.board.vo.BoardVO">
+        SELECT *
+        FROM (SELECT BOARD.BOARD_ID,
+                     BOARD.BOARD_NAME,
+                     (SELECT COUNT(*)
+                      FROM BOARD_POST
+                      WHERE BOARD_ID = BOARD.BOARD_ID
+                        AND POST_TIMESTAMP > SYSTIMESTAMP - INTERVAL '7' DAY)                  AS BOARD_POST_COUNT,
+                     (SELECT COUNT(*) FROM BOARD_SUBSCRIPTION WHERE BOARD_ID = BOARD.BOARD_ID) AS BOARD_SUB_COUNT
+              FROM "BOARD"
+              ORDER BY (BOARD_POST_COUNT + BOARD_SUB_COUNT * 5) DESC)
+        WHERE ROWNUM <![CDATA[<=]]> #{limit}
+    </select>
+</mapper>

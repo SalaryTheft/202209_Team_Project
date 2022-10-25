@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.navercorp.com/lucy-xss-servlet">
+    <defenders>
+        <!-- xssPreventerDefender -->
+        <!-- 예외 없이 모두 필터링 -->
+        <defender>
+            <name>xssPreventerDefender</name>
+            <class>com.navercorp.lucy.security.xss.servletfilter.defender.XssPreventerDefender</class>
+        </defender>
+
+        <!-- xssSaxFilterDefender -->
+        <!-- 화이트리스트 방식으로 필터링 -->
+        <defender>
+            <name>xssSaxFilterDefender</name>
+            <class>com.navercorp.lucy.security.xss.servletfilter.defender.XssSaxFilterDefender</class>
+            <init-param>
+                <param-value>lucy-xss-sax.xml</param-value>
+                <param-value>false</param-value>
+            </init-param>
+        </defender>
+    </defenders>
+
+    <default>
+        <defender>xssPreventerDefender</defender>
+    </default>
+
+    <global>
+        <params>
+            <!-- 게시글 및 댓글의 본문은 HTML 태그를 사용할 수 있기 때문에
+            xssSaxFilterDefender를 사용해 필터링 한다. -->
+            <param name="postContent">
+                <defender>xssSaxFilterDefender</defender>
+            </param>
+            <param name="commentContent">
+                <defender>xssSaxFilterDefender</defender>
+            </param>
+        </params>
+    </global>
+</config>
